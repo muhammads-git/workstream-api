@@ -20,8 +20,6 @@ class Organization(BASE):
    created_at=Column(DateTime(timezone=True),default=lambda: datetime.now(timezone.utc))
    created_by= Column(Integer, ForeignKey('users.id'))
 
-
-
 class Project(BASE):
    __tablename__="projects"
 
@@ -30,8 +28,6 @@ class Project(BASE):
    org_id = Column(Integer,ForeignKey('organizations.id'))
    created_by = Column(Integer,ForeignKey('users.id'))
    created_at = Column(DateTime(timezone=True),default=lambda: datetime.now(timezone.utc))
-
-
 
 # Enum for priority
 class TaskStatus(enum.Enum):
@@ -79,7 +75,6 @@ class Assignment(BASE):
    task_id =Column(Integer, ForeignKey("tasks.id"))
    assigned_at=Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
    assigned_by = Column(Integer, ForeignKey("users.id"))
-
 
 # type 
 class NotificationType(enum.Enum):
