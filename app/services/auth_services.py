@@ -19,8 +19,8 @@ class Passwords:
       return pwd_context.verify(plain_password,hashed_password)
    
 # SETUP JWT
-class Tokens:
-   def createAccessToken(data:dict):
+
+def createAccessToken(data:dict):
       """ Here, encode those headers + payload + signature """
       payload = data.copy()
       expire = datetime.now(timezone.utc) + timedelta(minutes=30)
@@ -28,7 +28,7 @@ class Tokens:
       token = jwt.encode(payload,SECRET_KEY,algorithm=ALGORITHM)
       return token
    
-   def decodeToken(token):
+def decodeToken(token):
       """ Here, decode the token,, using jwt.decode and then return ... """
       try:
          username = jwt.decode(token=token)
