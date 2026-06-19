@@ -4,6 +4,7 @@ from app.schema import UserCreate,UserLogin,UserResponse
 from sqlalchemy.orm import Session
 from app.services.auth_services import Passwords
 from app.models import User
+from app.services.auth_services import Tokens
 # router..
 auths_router = APIRouter()
 
@@ -34,4 +35,12 @@ def login(user:UserLogin,db:Session = Depends(get_db)):
    # verify 
    # create access token
    # success
-   pass
+   user_data = db.query(User).filter(user.email == User.email).all()
+   if user_data :
+      username = user_data.name
+      # create token
+      token = Tokens.createAccessToken(data=[username])
+      return {'token':token,'message':'User log-In Success'}
+   return {'message':'User not found'}
+
+
