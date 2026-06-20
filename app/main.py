@@ -1,10 +1,10 @@
-from fastapi import FastApi
+from fastapi import FastAPI
 from app.models import BASE
 from app.database import engine
 from app.auths.auth import auths_router
 
 # create instance 
-app = FastApi("NexusAPI")
+app = FastAPI(title="NexusAPI")
 # create models
 BASE.metadata.create_all(bind=engine)
 # attach routers

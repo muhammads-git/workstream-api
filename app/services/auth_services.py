@@ -3,12 +3,8 @@ from jose import jwt
 import os 
 from datetime import datetime,timedelta,timezone
 
-# attributes.. for Creating Access Token....
-ALGORITHM = os.getenv('JWT_ALGORITHM')
-SECRET_KEY = os.getenv('SECRET_KEY')
-
 # set up the CryptContext with basics scheme bcrypt
-pwd_context = CryptContext(schemes=['bcrypt'],deprecated='auto')
+pwd_context = CryptContext(schemes=['argon2'],deprecated='auto')
 
 class Passwords:
 
@@ -19,6 +15,10 @@ class Passwords:
       return pwd_context.verify(plain_password,hashed_password)
    
 # SETUP JWT
+# attributes.. for Creating Access Token....
+ALGORITHM = os.getenv('JWT_ALGORITHM')
+SECRET_KEY = os.getenv('SECRET_KEY')
+
 
 def createAccessToken(data:dict):
       """ Here, encode those headers + payload + signature """

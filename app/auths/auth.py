@@ -4,7 +4,7 @@ from app.schema import UserCreate,UserLogin,UserResponse
 from sqlalchemy.orm import Session
 from app.services.auth_services import Passwords
 from app.models import User
-from app.services.auth_services import Tokens
+from app.services.auth_services import createAccessToken
 # router..
 auths_router = APIRouter()
 
@@ -12,7 +12,7 @@ auths_router = APIRouter()
 @auths_router.post('/register',response_model=UserResponse)
 def register(request:Request,user:UserCreate, db:Session= Depends(get_db)):
    # chech for existing user
-   existing = db.query(User).filter(user.email == User.email).all()
+   existing = db.query(User).filter(User.email == user.email).first()
    if existing:
       raise HTTPException(status_code=400,detail="Email already exits!")
    # hash password 
@@ -32,15 +32,13 @@ def register(request:Request,user:UserCreate, db:Session= Depends(get_db)):
 
 @auths_router.post('/login')
 def login(user:UserLogin,db:Session = Depends(get_db)):
-   # verify 
-   # create access token
-   # success
-   user_data = db.query(User).filter(user.email == User.email).all()
+   user_data = db.query(User).filter(User.email == user.email).first()
    if user_data :
       username = user_data.name
       # create token
-      token = Tokens.createAccessToken(data=[username])
+      token = createAccessToken(data={'sub':username})
       return {'token':token,'message':'User log-In Success'}
    return {'message':'User not found'}
 
 
+## get current User
