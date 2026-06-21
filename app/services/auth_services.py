@@ -2,6 +2,10 @@ from passlib.context import CryptContext
 from jose import jwt
 import os 
 from datetime import datetime,timedelta,timezone
+from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends
+
 
 # set up the CryptContext with basics scheme bcrypt
 pwd_context = CryptContext(schemes=['argon2'],deprecated='auto')
@@ -37,3 +41,14 @@ def decodeToken(token):
          print(f'Invalid Token..: {e}')
          return None
 
+### get current user
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/login')
+
+def get_current_user(token:str, Depends(oauth2_scheme))-> str:
+      username = decodeToken(token=token)
+      if not username:
+          raise HTTPException(status_code=401,detail='Invalid token')
+      return username
+   
+        
+    
