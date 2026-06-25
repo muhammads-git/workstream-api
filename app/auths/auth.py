@@ -2,9 +2,10 @@ from fastapi import APIRouter, Request, HTTPException,Depends
 from app.database import get_db,SessionLocal
 from app.schema import UserCreate,UserLogin,UserResponse
 from sqlalchemy.orm import Session
-from app.services.auth_services import Passwords
+from app.services.auth_services import checkPassword,hashPassword
 from app.models import User
 from app.services.auth_services import createAccessToken
+
 # router..
 auths_router = APIRouter()
 
@@ -16,7 +17,7 @@ def register(request:Request,user:UserCreate, db:Session= Depends(get_db)):
    if existing:
       raise HTTPException(status_code=400,detail="Email already exits!")
    # hash password 
-   hashed_password = Passwords.hashPassword(user.password)
+   hashed_password = hashPassword(user.password)
    # insert
    new_user =  User(
       name = user.name,
@@ -33,12 +34,13 @@ def register(request:Request,user:UserCreate, db:Session= Depends(get_db)):
 @auths_router.post('/login')
 def login(user:UserLogin,db:Session = Depends(get_db)):
    user_data = db.query(User).filter(User.email == user.email).first()
-   if user_data :
+   if user_data and checkPassword(User.password,user_data.password):
+      # check password
       username = user_data.name
       # create token
       token = createAccessToken(data={'sub':username,'id':user_data.id})
       return {'token':token,'message':'User log-In Success'}
-   return {'message':'User not found'}
+   raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
 ## get current User
