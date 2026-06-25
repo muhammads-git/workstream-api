@@ -35,8 +35,10 @@ def createAccessToken(data:dict):
 def decodeToken(token):
       """ Here, decode the token,, using jwt.decode and then return ... """
       try:
-         username = jwt.decode(token=token)
-         return username
+         payload = jwt.decode(token, SECRET_KEY, [ALGORITHM])
+         username = payload.get('sub')
+         user_id = payload.get('id')
+         return {'username':username,'user_id':user_id}
       except Exception as e:
          print(f'Invalid Token..: {e}')
          return None
@@ -44,11 +46,11 @@ def decodeToken(token):
 ### get current user
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/login')
 
-def get_current_user(token:str, Depends(oauth2_scheme))-> str:
-      username = decodeToken(token=token)
-      if not username:
+def get_current_user(token:str = Depends(oauth2_scheme))-> str:
+      payload = decodeToken(token=token)
+      if not payload:
           raise HTTPException(status_code=401,detail='Invalid token')
-      return username
+      return payload
    
         
     

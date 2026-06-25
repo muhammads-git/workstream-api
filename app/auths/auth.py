@@ -36,7 +36,7 @@ def login(user:UserLogin,db:Session = Depends(get_db)):
    if user_data :
       username = user_data.name
       # create token
-      token = createAccessToken(data={'sub':username})
+      token = createAccessToken(data={'sub':username,'id':user_data.id})
       return {'token':token,'message':'User log-In Success'}
    return {'message':'User not found'}
 
