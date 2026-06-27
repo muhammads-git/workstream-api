@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-
+from app.models import MemberRole
 # register
 class UserCreate(BaseModel):
    name : str
@@ -23,3 +23,7 @@ class OrganizationForm(BaseModel):
 
    class Config:
         from_attributes = True
+
+class AddMemberSchema(BaseModel):
+   email : EmailStr
+   role : MemberRole = MemberRole.member
