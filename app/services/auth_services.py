@@ -5,11 +5,12 @@ from datetime import datetime,timedelta,timezone
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # set up the CryptContext with basics scheme bcrypt
 pwd_context = CryptContext(schemes=['argon2'],deprecated='auto')
-
 
 def hashPassword(plain_password:str) -> str:
       return pwd_context.hash(plain_password)
@@ -29,12 +30,13 @@ def createAccessToken(data:dict):
       expire = datetime.now(timezone.utc) + timedelta(minutes=30)
       payload.update({"exp": expire})
       token = jwt.encode(payload,SECRET_KEY,algorithm=ALGORITHM)
+      print(token)
       return token
    
 def decodeToken(token):
       """ Here, decode the token,, using jwt.decode and then return ... """
       try:
-         payload = jwt.decode(token, SECRET_KEY, [ALGORITHM])
+         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
          username = payload.get('sub')
          user_id = payload.get('id')
          return {'username':username,'user_id':user_id}
@@ -45,7 +47,9 @@ def decodeToken(token):
 ### get current user
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/login')
 def get_current_user(token:str = Depends(oauth2_scheme))-> str:
-      payload = decodeToken(token=token)
+      print(' Finding current user....')
+      print(token)
+      payload = decodeToken(token)
       if not payload:
           raise HTTPException(status_code=401,detail='Invalid token')
       return payload

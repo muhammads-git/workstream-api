@@ -17,5 +17,9 @@ class UserResponse(BaseModel):
    name : str
    email : EmailStr
 
+# organization
+class OrganizationForm(BaseModel):
+   name : str
+
    class Config:
         from_attributes = True

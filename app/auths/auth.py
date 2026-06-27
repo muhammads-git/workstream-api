@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.services.auth_services import checkPassword,hashPassword
 from app.models import User
 from app.services.auth_services import createAccessToken
-
+from fastapi.security import OAuth2PasswordRequestForm
 # router..
 auths_router = APIRouter()
 
@@ -32,14 +32,14 @@ def register(request:Request,user:UserCreate, db:Session= Depends(get_db)):
    return new_user
 
 @auths_router.post('/login')
-def login(user:UserLogin,db:Session = Depends(get_db)):
-   user_data = db.query(User).filter(User.email == user.email).first()
-   if user_data and checkPassword(User.password,user_data.password):
+def login(user:OAuth2PasswordRequestForm = Depends(),db:Session = Depends(get_db)):
+   user_data = db.query(User).filter(User.email == user.username).first()
+   if user_data and checkPassword(user.password,user_data.password):
       # check password
-      username = user_data.name
+      # username = user_data.name
       # create token
-      token = createAccessToken(data={'sub':username,'id':user_data.id})
-      return {'token':token,'message':'User log-In Success'}
+      token = createAccessToken(data={'sub':user_data.name,'id':user_data.id})
+      return {'access_token': token, 'token_type': 'bearer'}
    raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
