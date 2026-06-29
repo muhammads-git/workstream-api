@@ -55,7 +55,7 @@ def create_organization(org_name : OrganizationForm, db : Session = Depends(get_
 
 
 @org_router.post('/organizations/{org_id}/invite')
-def invite_members(member : AddMemberSchema, db : Session = Depends(get_db), cur_user  = Depends (get_current_user)):
+def invite_members(org_id : int,member : AddMemberSchema, db : Session = Depends(get_db), cur_user  = Depends (get_current_user)):
    """ Check the user is admin:
        find the member by email:
        add to organzations.. table...
@@ -75,4 +75,8 @@ def invite_members(member : AddMemberSchema, db : Session = Depends(get_db), cur
       return {'message':'User is already a member'}
 
    # add to membership
-   membership = Membership()   
+   membership = Membership(
+                           cur_user.get('user_id'),
+                           org_id,
+                           MemberRole.member
+                           )   
