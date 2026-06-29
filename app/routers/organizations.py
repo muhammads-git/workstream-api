@@ -80,3 +80,17 @@ def invite_members(org_id : int,member : AddMemberSchema, db : Session = Depends
                            org_id,
                            MemberRole.member
                            )   
+
+   db.add(membership)
+   db.commit()
+
+   # return
+   return {
+    'message': 'Member added successfully',
+    'member': {
+        'email': user.email,
+        'name': user.name,
+        'role': MemberRole.member,
+        'org_id': org_id
+    }
+}
