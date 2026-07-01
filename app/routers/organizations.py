@@ -53,44 +53,47 @@ def create_organization(org_name : OrganizationForm, db : Session = Depends(get_
 }
 
 
-
 @org_router.post('/organizations/{org_id}/invite')
-def invite_members(org_id : int,member : AddMemberSchema, db : Session = Depends(get_db), cur_user  = Depends (get_current_user)):
-   """ Check the user is admin:
-       find the member by email:
-       add to organzations.. table...
-   """
-   member = db.query(Membership).filter(Membership.user_id == cur_user.get('user_id')).all()
-
-   if not member:
-      raise HTTPException(status_code = 401, details='Access declined!')
-   
-   # fetch user by email
-   user = db.query(User).filter(User.email ==  member.email).all()
-   print(user)
-
-   # check if user is not already a member
-   is_member = db.query(Membership).filter(Membership.user_id == user['id'] and Membership.role == 'member').all()
-   if is_member:
-      return {'message':'User is already a member'}
-
-   # add to membership
-   membership = Membership(
-                           cur_user.get('user_id'),
-                           org_id,
-                           MemberRole.member
-                           )   
-
-   db.add(membership)
-   db.commit()
-
-   # return
-   return {
-    'message': 'Member added successfully',
-    'member': {
-        'email': user.email,
-        'name': user.name,
-        'role': MemberRole.member,
-        'org_id': org_id
+def invite_members(org_id: int, invite: AddMemberSchema, db: Session = Depends(get_db), cur_user = Depends(get_current_user)):
+    
+    # check current user is admin of this org
+    admin_check = db.query(Membership).filter(
+        Membership.user_id == cur_user.get('user_id'),
+        Membership.org_id == org_id,
+        Membership.role == MemberRole.admin
+    ).first()
+    
+    if not admin_check:
+        raise HTTPException(status_code=403, detail='Admin access required')
+    
+    # find user by email
+    user = db.query(User).filter(User.email == invite.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail='User not found')
+    
+    # check not already a member
+    is_member = db.query(Membership).filter(
+        Membership.user_id == user.id,
+        Membership.org_id == org_id
+    ).first()
+    if is_member:
+        return {'message': 'User is already a member'}
+    
+    # add to membership
+    new_membership = Membership(
+        user_id=user.id,
+        org_id=org_id,
+        role=MemberRole.member
+    )
+    db.add(new_membership)
+    db.commit()
+    
+    return {
+        'message': 'Member added successfully',
+        'member': {
+            'email': user.email,
+            'name': user.name,
+            'role': MemberRole.member,
+            'org_id': org_id
+        }
     }
-}

@@ -26,4 +26,4 @@ class OrganizationForm(BaseModel):
 
 class AddMemberSchema(BaseModel):
    email : EmailStr
-   role : MemberRole = MemberRole.member
+   # role : MemberRole = MemberRole.member
