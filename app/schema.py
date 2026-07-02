@@ -27,3 +27,8 @@ class OrganizationForm(BaseModel):
 class AddMemberSchema(BaseModel):
    email : EmailStr
    # role : MemberRole = MemberRole.member
+
+
+class ProjectCreate(BaseModel):
+   title : str
+   org_id : int

@@ -11,7 +11,7 @@ BASE.metadata.create_all(bind=engine)
 # attach routers
 app.include_router(auths_router,prefix='/auth',tags=['auth'])
 app.include_router(org_router,prefix='/v1',tags=['org'])
-app.include_router(pro_router,prefix='/project',tags=['project'])
+app.include_router(pro_router,prefix='/v1',tags=['project'])
 
 @app.get('/')
 def root():

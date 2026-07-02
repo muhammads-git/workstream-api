@@ -76,6 +76,7 @@ def invite_members(org_id: int, invite: AddMemberSchema, db: Session = Depends(g
         Membership.user_id == user.id,
         Membership.org_id == org_id
     ).first()
+    
     if is_member:
         return {'message': 'User is already a member'}
     
