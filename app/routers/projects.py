@@ -37,4 +37,9 @@ def create_project(project : ProjectCreate, db : Session = Depends(get_db), cur_
     }
 }   
 
+
+
+@pro_router.get('/projects/{org_id}')
+def get_projects(org_id : int, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+   pass
    
