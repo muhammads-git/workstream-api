@@ -40,5 +40,10 @@ def create_project(project : ProjectCreate, db : Session = Depends(get_db), cur_
 
 @pro_router.get('/projects/{org_id}')
 def get_projects(org_id : int, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
-   pass
    
+   # check authorization
+   is_member = db.query(Membership).filter(Membership.org_id == org_id).first()
+   if not is_member:
+      raise HTTPException(status_code=403,detail='Access denied!')
+   
+
