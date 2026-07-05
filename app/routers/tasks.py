@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.services.auth_services import get_current_user
 from app.models import User,Organization,Membership,MemberRole,Project,Task,TaskPriority,TaskStatus
 from app.schema import TaskCreate
+from datetime import datetime, timezone
 
 task_router = APIRouter()
 
@@ -27,6 +28,10 @@ def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = De
    if not is_member_admin_manager:
       raise HTTPException(status_code=403,detail='Access denied!')
    
+
+   # check past deadlines
+   if task.deadline < datetime.now(timezone.utc):
+     raise HTTPException(status_code=400, detail='Deadline cannot be in the past')
    
    # insert into tasks
    new_task = Task(project_id=task.project_id,

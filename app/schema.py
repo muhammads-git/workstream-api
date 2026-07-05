@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from app.models import MemberRole,TaskPriority
 from datetime import datetime
+from typing import Optional
 # register
 class UserCreate(BaseModel):
    name : str
@@ -39,4 +40,4 @@ class TaskCreate(BaseModel):
    project_id : int
    title : str
    priority : TaskPriority = TaskPriority.medium
-   deadline : datetime
+   deadline : Optional[datetime] = None
