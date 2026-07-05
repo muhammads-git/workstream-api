@@ -18,7 +18,7 @@ org_router = APIRouter()
 @org_router.post('/organization')
 def create_organization(org_name : OrganizationForm, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
    # authentications layer
-   print(cur_user)
+
    if not cur_user:
       raise HTTPException(status_code=401, detail='No user found, login again!')
    

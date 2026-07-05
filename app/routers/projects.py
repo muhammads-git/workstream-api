@@ -67,3 +67,5 @@ def get_projects(org_id : int, db : Session = Depends(get_db), cur_user = Depend
         for p in projects
     ]
 }
+
+

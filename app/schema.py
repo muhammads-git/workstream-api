@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
-from app.models import MemberRole
+from app.models import MemberRole,TaskPriority
+from datetime import datetime
 # register
 class UserCreate(BaseModel):
    name : str
@@ -32,3 +33,10 @@ class AddMemberSchema(BaseModel):
 class ProjectCreate(BaseModel):
    title : str
    org_id : int
+
+
+class TaskCreate(BaseModel):
+   project_id : int
+   title : str
+   priority : TaskPriority = TaskPriority.medium
+   deadline : datetime
