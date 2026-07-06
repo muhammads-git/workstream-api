@@ -3,8 +3,8 @@ from app.schema import OrganizationForm,AddMemberSchema
 from app.database import SessionLocal,get_db
 from sqlalchemy.orm import Session
 from app.services.auth_services import get_current_user
-from app.models import User,Organization,Membership,MemberRole,Project,Task,TaskPriority,TaskStatus
-from app.schema import TaskCreate
+from app.models import User,Organization,Membership,MemberRole,Project,Task,TaskPriority,TaskStatus,Assignment
+from app.schema import TaskCreate,TaskAssign
 from datetime import datetime, timezone
 
 task_router = APIRouter()
@@ -22,7 +22,7 @@ def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = De
    is_member_admin_manager = db.query(Membership).filter(
             Membership.user_id == cur_user.get('user_id'),
             Membership.org_id == org_id,
-            Membership.role.in_([MemberRole.admin, MemberRole.manager])
+            Membership.role.in_([MemberRole.admin, MemberRole.manager]).all()
    ).first()
 
    if not is_member_admin_manager:
@@ -53,3 +53,55 @@ def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = De
       'deadline':new_task.deadline
    }}
 
+
+
+@task_router.post('/tasks/{task_id}/assign')
+def assing_task(task_assign : TaskAssign,task_id : int, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+   
+   # fetch org_id from the task chain
+
+   # Task -> Project -> Organization
+   project_id = db.query(Task.project_id).filter(Task.id == task_id).scalar()
+
+   if not project_id:
+     raise HTTPException(status_code=404,detail='Project not found!')
+   # org_id
+   org_id = db.query(Project.org_id).filter(Project.id == project_id).scalar()
+   
+   if not org_id:
+     raise HTTPException(status_code=404,detail='Organization not found!')
+   # uthorization check
+   is_admin_manager = db.query(Membership).filter(Membership.user_id == cur_user.get('user_id'),
+                                                  Membership.org_id == org_id,
+                                                  Membership.role.in_([MemberRole.manager,MemberRole.admin])).all()
+   
+   if not is_admin_manager:
+     raise HTTPException(status_code=403,detail='Access denied!')
+   
+   # # check the user we are assigning task to is member of the org
+
+   is_member = db.query(Membership).filter(Membership.user_id == task_assign.user_id,
+                               Membership.org_id == org_id,
+                               Membership.role.in_([MemberRole.member]))
+   
+   if not is_member:
+     raise HTTPException(status_code=403,detail='User is not the member of this organization!')
+   
+   
+   # assign task to the user
+   # ASSIGNMENT
+   new_assignment = Assignment(user_id=task_assign.user_id,
+                               task_id=task_id,
+                               assigned_by=cur_user.get('user_id'))
+
+   db.add(new_assignment)
+   db.commit()
+
+   return {
+     'message':'Task Assigned.','details':{
+       'task_id':new_assignment.id,
+       'assigned_to':task_assign.user_id,
+       'assigned_by':cur_user.get('username'),
+
+     }
+   }

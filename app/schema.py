@@ -41,3 +41,8 @@ class TaskCreate(BaseModel):
    title : str
    priority : TaskPriority = TaskPriority.medium
    deadline : Optional[datetime] = None
+
+
+
+class TaskAssign(BaseModel):
+   user_id : int

@@ -73,7 +73,7 @@ class Assignment(BASE):
    id = Column(Integer, primary_key=True, autoincrement=True)
    user_id = Column(Integer, ForeignKey("users.id")) 
    task_id =Column(Integer, ForeignKey("tasks.id"))
-   assigned_at=Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+   assigned_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
    assigned_by = Column(Integer, ForeignKey("users.id"))
 
 # type 
