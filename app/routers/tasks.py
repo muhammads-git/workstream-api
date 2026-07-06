@@ -22,7 +22,7 @@ def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = De
    is_member_admin_manager = db.query(Membership).filter(
             Membership.user_id == cur_user.get('user_id'),
             Membership.org_id == org_id,
-            Membership.role.in_([MemberRole.admin, MemberRole.manager]).all()
+            Membership.role.in_([MemberRole.admin, MemberRole.manager])
    ).first()
 
    if not is_member_admin_manager:
@@ -73,7 +73,7 @@ def assing_task(task_assign : TaskAssign,task_id : int, db : Session = Depends(g
    # uthorization check
    is_admin_manager = db.query(Membership).filter(Membership.user_id == cur_user.get('user_id'),
                                                   Membership.org_id == org_id,
-                                                  Membership.role.in_([MemberRole.manager,MemberRole.admin])).all()
+                                                  Membership.role.in_([MemberRole.manager,MemberRole.admin])).first()
    
    if not is_admin_manager:
      raise HTTPException(status_code=403,detail='Access denied!')
