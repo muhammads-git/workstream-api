@@ -5,6 +5,7 @@ from app.auths.auth import auths_router
 from app.routers.organizations import org_router
 from app.routers.projects import pro_router
 from app.routers.tasks import task_router
+from app.routers.notifications import notification_router
 
 # create instance 
 app = FastAPI(title="NexusAPI")
@@ -15,6 +16,7 @@ app.include_router(auths_router,prefix='/auth',tags=['auth'])
 app.include_router(org_router,prefix='/v1',tags=['org'])
 app.include_router(pro_router,prefix='/v1',tags=['projects'])
 app.include_router(task_router,prefix='/v1',tags=['tasks'])
+app.include_router(notification_router)
 
 @app.get('/')
 def root():
