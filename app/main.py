@@ -6,9 +6,10 @@ from app.routers.organizations import org_router
 from app.routers.projects import pro_router
 from app.routers.tasks import task_router
 from app.routers.notifications import notification_router
-
+from app.life import lifespan
 # create instance 
-app = FastAPI(title="NexusAPI")
+app = FastAPI(title="NexusAPI",lifespan=lifespan)
+
 # create models
 BASE.metadata.create_all(bind=engine)
 # attach routers

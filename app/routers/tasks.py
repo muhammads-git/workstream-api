@@ -1,14 +1,14 @@
-from fastapi import APIRouter,HTTPException,Depends
+from fastapi import APIRouter,HTTPException,Depends,Request
 from app.schema import OrganizationForm,AddMemberSchema
 from app.database import SessionLocal,get_db
 from sqlalchemy.orm import Session
 from app.services.auth_services import get_current_user
-from app.models import User,Organization,Membership,MemberRole,Project,Task,TaskPriority,TaskStatus,Assignment
+from app.models import User,Organization,Membership,MemberRole,Project,Task,TaskPriority,TaskStatus,Assignment,Notification,NotificationType
 from app.schema import TaskCreate,TaskAssign
 from datetime import datetime, timezone
 
-task_router = APIRouter()
 
+task_router = APIRouter()
 
 @task_router.post('/tasks')
 def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
@@ -56,7 +56,7 @@ def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = De
 
 
 @task_router.post('/tasks/{task_id}/assign')
-def assing_task(task_assign : TaskAssign,task_id : int, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+async def assing_task(request:Request, task_assign : TaskAssign,task_id : int, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
    
    # fetch org_id from the task chain
 
@@ -81,8 +81,7 @@ def assing_task(task_assign : TaskAssign,task_id : int, db : Session = Depends(g
    # # check the user we are assigning task to is member of the org
 
    is_member = db.query(Membership).filter(Membership.user_id == task_assign.user_id,
-                               Membership.org_id == org_id,
-                               Membership.role.in_([MemberRole.member]))
+                               Membership.org_id == org_id).first()
    
    if not is_member:
      raise HTTPException(status_code=403,detail='User is not the member of this organization!')
@@ -94,8 +93,23 @@ def assing_task(task_assign : TaskAssign,task_id : int, db : Session = Depends(g
                                task_id=task_id,
                                assigned_by=cur_user.get('user_id'))
 
+
+   # Notifications to user
+   new_notification = Notification(user_id=task_assign.user_id,task_id=task_id,
+                                   message=f'You have been assigned a task by {cur_user.get('username')}',
+                                   type=NotificationType.task_assigned)
+   
+   # assignement
    db.add(new_assignment)
+   # notification
+   db.add(new_notification)
    db.commit()
+
+   # PUSH TO WEBSOCKETS
+   manager = request.app.state.manager
+   print(f'Task manager is {id(manager)}')
+   await manager.send_text_message(user_id=task_assign.user_id,
+                                   message=new_notification.message)
 
    return {
      'message':'Task Assigned.','details':{
