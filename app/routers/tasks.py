@@ -121,4 +121,8 @@ async def assing_task(request:Request, task_assign : TaskAssign,task_id : int, d
    }
 
 
-   
+# GET TASKS
+@task_router.get('/tasks/{project_id}')
+def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db),cur_user = Depends(get_current_user)):
+  pass
+  """ get all tasks by project ID"""
