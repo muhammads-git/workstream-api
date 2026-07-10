@@ -124,5 +124,18 @@ async def assing_task(request:Request, task_assign : TaskAssign,task_id : int, d
 # GET TASKS
 @task_router.get('/tasks/{project_id}')
 def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db),cur_user = Depends(get_current_user)):
-  pass
+  
   """ get all tasks by project ID"""
+  org_id = db.query(Project.org_id).filter(Project.id == project_id).first()
+
+  is_admin_manager = db.query(Membership).filter(Membership.user_id == cur_user.get('user_id'),
+                                                 Membership.org_id == org_id,
+                                                 Membership.role.in_([MemberRole.admin,MemberRole.manager])).first()
+  
+
+
+  if not is_admin_manager:
+    raise HTTPException(status_code=403,detail='Access denied!')
+  
+  # fetch tasks where project_id is this...
+  pass
