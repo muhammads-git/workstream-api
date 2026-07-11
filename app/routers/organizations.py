@@ -5,7 +5,7 @@
 
 """
 
-from fastapi import APIRouter,HTTPException,Depends
+from fastapi import APIRouter,HTTPException,Depends,Request
 from app.schema import OrganizationForm,AddMemberSchema
 from app.database import SessionLocal,get_db
 from sqlalchemy.orm import Session
@@ -54,7 +54,11 @@ def create_organization(org_name : OrganizationForm, db : Session = Depends(get_
 
 
 @org_router.post('/organizations/{org_id}/invite')
-def invite_members(org_id: int, invite: AddMemberSchema, db: Session = Depends(get_db), cur_user = Depends(get_current_user)):
+async def invite_members(request:Request,org_id: int, invite: AddMemberSchema, db: Session = Depends(get_db), cur_user = Depends(get_current_user)):
+    # check for org 
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404,detail='Organization not found!')
     
     # check current user is admin of this org
     admin_check = db.query(Membership).filter(
@@ -88,6 +92,11 @@ def invite_members(org_id: int, invite: AddMemberSchema, db: Session = Depends(g
     )
     db.add(new_membership)
     db.commit()
+
+
+    # Notifiy User that he has been added to the org membership
+    manager = request.app.state.manager
+    await manager.send_text_message(user_id=new_membership.user_id,message=f'You are now a member of {org.name}.')
     
     return {
         'message': 'Member added successfully',
@@ -98,3 +107,4 @@ def invite_members(org_id: int, invite: AddMemberSchema, db: Session = Depends(g
             'org_id': org_id
         }
     }
+
