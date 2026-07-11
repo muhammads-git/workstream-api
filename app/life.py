@@ -10,5 +10,6 @@ async def lifespan(app: FastAPI):
    app.state.manager = ConnectionManager()
 
    yield
+
    # shuttdown 
 

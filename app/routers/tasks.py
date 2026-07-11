@@ -56,7 +56,7 @@ def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = De
 
 
 @task_router.post('/tasks/{task_id}/assign')
-async def assing_task(request:Request, task_assign : TaskAssign,task_id : int, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+async def assign_task(request:Request, task_assign : TaskAssign,task_id : int, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
    
    # fetch org_id from the task chain
 
@@ -126,7 +126,7 @@ async def assing_task(request:Request, task_assign : TaskAssign,task_id : int, d
 def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db),cur_user = Depends(get_current_user)):
   
   """ get all tasks by project ID"""
-  org_id = db.query(Project.org_id).filter(Project.id == project_id).first()
+  org_id = db.query(Project.org_id).filter(Project.id == project_id).scalar()
 
   is_admin_manager = db.query(Membership).filter(Membership.user_id == cur_user.get('user_id'),
                                                  Membership.org_id == org_id,
@@ -138,4 +138,18 @@ def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db)
     raise HTTPException(status_code=403,detail='Access denied!')
   
   # fetch tasks where project_id is this...
-  pass
+  tasks = db.query(Task).filter(Task.project_id == project_id).all()
+  if not tasks:
+    raise HTTPException(status_code=404,detail='No task found!')
+  
+  return {
+    # list comprehension
+    'Tasks': [
+      {
+      'id':t.id,
+      'title':t.title,
+      'priority':t.priority,
+      'created_at':t.created_at
+    }
+      for t in tasks
+  ]}
