@@ -88,7 +88,7 @@ class Notification(BASE):
    
    id = Column(Integer, primary_key=True, autoincrement=True)
    message = Column(Text)
-   read = Column(Boolean, default=False)
+   read = Column(Boolean, default=False, server_default='false', nullable=False)
    user_id = Column(Integer, ForeignKey("users.id"))
    task_id = Column(Integer, ForeignKey("tasks.id"))
    type = Column(Enum(NotificationType), nullable=False)

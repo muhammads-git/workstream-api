@@ -37,3 +37,21 @@ def get_all_notifications(db : Session = Depends(get_db), curr_user = Depends(ge
             for n in notifications
         ]
     }
+
+@notification_router.patch('/notifications/{notification_id}/read')
+def mark_as_read_notification( notification_id : int,db: Session = Depends(get_db) ,curr_user = Depends(get_current_user)):
+    
+    notif = db.query(Notification).filter(Notification.id == notification_id,
+                                   Notification.user_id == curr_user.get('user_id')).first()
+    
+    if not notif:
+        raise HTTPException(status_code = 404, detail='No notifications found!')
+    
+    # mark as read
+    notif.read = True
+    db.commit()
+    db.refresh(notif)
+
+    
+    return {'message': 'Marked as read', 'read': notif.read}
+
