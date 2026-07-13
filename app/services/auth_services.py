@@ -30,7 +30,6 @@ def createAccessToken(data:dict):
       expire = datetime.now(timezone.utc) + timedelta(minutes=30)
       payload.update({"exp": expire})
       token = jwt.encode(payload,SECRET_KEY,algorithm=ALGORITHM)
-      print(token)
       return token
    
 def decodeToken(token):
@@ -47,8 +46,6 @@ def decodeToken(token):
 ### get current user
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/login')
 def get_current_user(token:str = Depends(oauth2_scheme))-> str:
-      print(' Finding current user....')
-      print(token)
       payload = decodeToken(token)
       if not payload:
           raise HTTPException(status_code=401,detail='Invalid token')

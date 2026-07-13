@@ -13,11 +13,11 @@ app = FastAPI(title="NexusAPI",lifespan=lifespan)
 # create models
 BASE.metadata.create_all(bind=engine)
 # attach routers
-app.include_router(auths_router,prefix='/auth',tags=['auth'])
+app.include_router(auths_router,prefix='/v1/auth',tags=['auth'])
 app.include_router(org_router,prefix='/v1',tags=['org'])
 app.include_router(pro_router,prefix='/v1',tags=['projects'])
 app.include_router(task_router,prefix='/v1',tags=['tasks'])
-app.include_router(notification_router)
+app.include_router(notification_router,tags=['notifications'])
 
 @app.get('/')
 def root():

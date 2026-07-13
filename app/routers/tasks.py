@@ -107,7 +107,6 @@ async def assign_task(request:Request, task_assign : TaskAssign,task_id : int, d
 
    # PUSH TO WEBSOCKETS
    manager = request.app.state.manager
-   print(f'Task manager is {id(manager)}')
    await manager.send_text_message(user_id=task_assign.user_id,
                                    message=new_notification.message)
 
