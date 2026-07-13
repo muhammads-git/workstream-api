@@ -43,17 +43,16 @@ def check_deadlines():
                db.add(notification)
 
       db.commit()
-
    finally:
       db.close()
 
-
+# start schedular
 def start_schedular():
    schedular.add_job(check_deadlines, 'interval', hours=1)
    schedular.start()
    return schedular
-
-def shuttdown_schedular():
+# shutdown schedular
+def shutdown_schedular():
    schedular.shutdown()
 
 

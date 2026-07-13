@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from app.services.connection_manager import ConnectionManager
-from app.schedular.background_schedular import start_schedular,shuttdown_schedular
+from app.schedular.background_schedular import start_schedular,shutdown_schedular
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,6 +14,6 @@ async def lifespan(app: FastAPI):
    yield
 
    # shuttdown
-   shuttdown_schedular()
+   shutdown_schedular()
    
 
