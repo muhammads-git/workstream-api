@@ -7,6 +7,7 @@ from app.routers.projects import pro_router
 from app.routers.tasks import task_router
 from app.routers.notifications import notification_router
 from app.life import lifespan
+
 # create instance 
 app = FastAPI(title="NexusAPI",lifespan=lifespan)
 

@@ -6,8 +6,8 @@ from app.services.auth_services import get_current_user
 from app.models import User,Organization,Membership,MemberRole,Project
 from app.schema import ProjectCreate
 
-pro_router = APIRouter()
 
+pro_router = APIRouter()
 
 
 @pro_router.post('/projects')
