@@ -6,7 +6,7 @@ from app.services.auth_services import get_current_user
 from app.models import User,Organization,Membership,MemberRole,Project,Task,TaskPriority,TaskStatus,Assignment,Notification,NotificationType
 from app.schema import TaskCreate,TaskAssign
 from datetime import datetime, timezone
-
+import json
 
 task_router = APIRouter()
 
@@ -122,7 +122,7 @@ async def assign_task(request:Request, task_assign : TaskAssign,task_id : int, d
 
 # GET TASKS
 @task_router.get('/tasks/{project_id}')
-def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db),cur_user = Depends(get_current_user)):
+async def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db),cur_user = Depends(get_current_user)):
   
   """ get all tasks by project ID"""
   org_id = db.query(Project.org_id).filter(Project.id == project_id).scalar()
@@ -136,10 +136,20 @@ def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db)
   if not is_admin_manager:
     raise HTTPException(status_code=403,detail='Access denied!')
   
+  # REDIS CACHE LAYER...
+  redis = request.app.state.redis
+  tasks = await redis.get(f'Tasks:{project_id}')
+  if tasks:
+    return {
+      'Tasks':json.loads(tasks)
+    }
+  
+
   # fetch tasks where project_id is this...
   tasks = db.query(Task).filter(Task.project_id == project_id).all()
   if not tasks:
     raise HTTPException(status_code=404,detail='No task found!')
+  
   
   return {
     # list comprehension
