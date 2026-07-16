@@ -11,7 +11,7 @@ pro_router = APIRouter()
 
 
 @pro_router.post('/projects')
-def create_project(project : ProjectCreate, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+async def create_project(request:Request,project : ProjectCreate, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
 
    is_admin_or_member = db.query(Membership.user_id == cur_user.get('user_id'),
                                  Membership.role.in_([MemberRole.admin, MemberRole.manager])) 
@@ -25,6 +25,10 @@ def create_project(project : ProjectCreate, db : Session = Depends(get_db), cur_
    
    db.add(new_project)
    db.commit()
+   # delete cached projects:
+   redis = request.app.state.redis
+   await redis.delete(f'projects:{new_project.org_id}')
+
 
    return {
     'message': 'Project created',
