@@ -11,7 +11,7 @@ import json
 task_router = APIRouter()
 
 @task_router.post('/tasks')
-def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+async def create_task(request:Request,task : TaskCreate, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
    # verify current user is admin or member or manager of the org
 
    org_id = db.query(Project.org_id).filter(Project.id == task.project_id).scalar()
@@ -44,6 +44,10 @@ def create_task(task : TaskCreate, db : Session = Depends(get_db), cur_user = De
    db.commit()
    db.refresh(new_task)
 
+   # delete cached data from REDIS
+   redis = request.app.state.redis
+   await redis.delete(f'tasks{new_task.project_id}')
+   
 
    return {'message':'Task created!','details':{
       'id':new_task.id,
@@ -138,7 +142,7 @@ async def get_tasks(project_id : int, request: Request, db : Session = Depends(g
   
   # REDIS CACHE LAYER...
   redis = request.app.state.redis
-  tasks = await redis.get(f'Tasks:{project_id}')
+  tasks = await redis.get(f'tasks:{project_id}')
   if tasks:
     return {
       'Tasks':json.loads(tasks)
@@ -150,15 +154,21 @@ async def get_tasks(project_id : int, request: Request, db : Session = Depends(g
   if not tasks:
     raise HTTPException(status_code=404,detail='No task found!')
   
+  # serialize manually, 
+  tasks_data = [{
+
+    'id':t.id,
+    'title':t.title,
+    'prioriy':t.priority.value,
+    'created_at':t.created_at.isoformat()
+
+  }
+    for t in tasks
+  ]
+  # put that into redis
+  await redis.setex(f'tasks:{project_id}',300,json.dumps(tasks_data))
+  
   
   return {
-    # list comprehension
-    'Tasks': [
-      {
-      'id':t.id,
-      'title':t.title,
-      'priority':t.priority,
-      'created_at':t.created_at
-    }
-      for t in tasks
-  ]}
+    'Tasks':tasks_data
+  }
