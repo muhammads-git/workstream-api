@@ -49,7 +49,8 @@ async def create_task(request:Request,task : TaskCreate, db : Session = Depends(
    await redis.delete(f'tasks{new_task.project_id}')
    
 
-   return {'message':'Task created!','details':{
+   return {'message':'Task created!','details':
+    {
       'id':new_task.id,
       'title':new_task.title,
       'project_id':new_task.project_id,

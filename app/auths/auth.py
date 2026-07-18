@@ -44,3 +44,7 @@ def login(user:OAuth2PasswordRequestForm = Depends(),db:Session = Depends(get_db
 
 
 ## get current User
+
+@auths_router.post('/logout')
+def logout():
+   pass
