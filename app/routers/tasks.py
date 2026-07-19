@@ -7,7 +7,7 @@ from app.models import User,Organization,Membership,MemberRole,Project,Task,Task
 from app.schema import TaskCreate,TaskAssign
 from datetime import datetime, timezone
 import json
-
+from app.services.rate_limiting_service import checkRateLimit
 task_router = APIRouter()
 
 @task_router.post('/tasks')
@@ -128,7 +128,11 @@ async def assign_task(request:Request, task_assign : TaskAssign,task_id : int, d
 # GET TASKS
 @task_router.get('/tasks/{project_id}')
 async def get_tasks(project_id : int, request: Request, db : Session = Depends(get_db),cur_user = Depends(get_current_user)):
-  
+  # RATE LIMIT
+  redis = request.app.state.redis
+  await checkRateLimit(redis,user_id=cur_user.get('user_id'))
+
+
   """ get all tasks by project ID"""
   org_id = db.query(Project.org_id).filter(Project.id == project_id).scalar()
 
@@ -142,7 +146,6 @@ async def get_tasks(project_id : int, request: Request, db : Session = Depends(g
     raise HTTPException(status_code=403,detail='Access denied!')
   
   # REDIS CACHE LAYER...
-  redis = request.app.state.redis
   tasks = await redis.get(f'tasks:{project_id}')
   if tasks:
     return {
