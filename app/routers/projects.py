@@ -6,12 +6,16 @@ from app.services.auth_services import get_current_user
 from app.models import User,Organization,Membership,MemberRole,Project
 from app.schema import ProjectCreate
 import json
+from app.services.rate_limiting_service import checkRateLimit
 
 pro_router = APIRouter()
 
 
 @pro_router.post('/projects')
 async def create_project(request:Request,project : ProjectCreate, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+  # RATE LIMIT
+   redis = request.app.state.redis
+   await checkRateLimit(redis,user_id=cur_user.get('user_id'))
 
    is_admin_or_member = db.query(Membership.user_id == cur_user.get('user_id'),
                                  Membership.role.in_([MemberRole.admin, MemberRole.manager])) 

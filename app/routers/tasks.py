@@ -12,6 +12,10 @@ task_router = APIRouter()
 
 @task_router.post('/tasks')
 async def create_task(request:Request,task : TaskCreate, db : Session = Depends(get_db), cur_user = Depends(get_current_user)):
+     # RATE LIMIT
+   redis = request.app.state.redis
+   await checkRateLimit(redis,user_id=cur_user.get('user_id'))
+
    # verify current user is admin or member or manager of the org
 
    org_id = db.query(Project.org_id).filter(Project.id == task.project_id).scalar()

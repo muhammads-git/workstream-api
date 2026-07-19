@@ -11,6 +11,7 @@ from app.database import SessionLocal,get_db
 from sqlalchemy.orm import Session
 from app.services.auth_services import get_current_user
 from app.models import User,Organization,Membership,MemberRole
+from app.services.rate_limiting_service import checkRateLimit
 
 org_router = APIRouter()
 
@@ -55,6 +56,10 @@ def create_organization(org_name : OrganizationForm, db : Session = Depends(get_
 
 @org_router.post('/organizations/{org_id}/invite')
 async def invite_members(request:Request,org_id: int, invite: AddMemberSchema, db: Session = Depends(get_db), cur_user = Depends(get_current_user)):
+      # RATE LIMIT
+    redis = request.app.state.redis
+    await checkRateLimit(redis,user_id=cur_user.get('user_id'))
+
     # check for org 
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
